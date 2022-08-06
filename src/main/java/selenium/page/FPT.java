@@ -3,6 +3,7 @@ package selenium.page;
 import java.util.ArrayList;
 
 
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -11,7 +12,6 @@ import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import selenium.model.FilterList;
@@ -73,15 +73,7 @@ public class FPT extends TGDD {
 			e = brandElements.get(i);
 			for (String string : strings) {
 				if (e.getAttribute("title").toLowerCase().contains(string)) {
-					// Cách 1
-//					Actions action = new Actions(driver);
-//					Actions move = action.moveToElement(e);
-					wait.until(ExpectedConditions.elementToBeClickable(e)).click();
-//					move.click().perform();
-					// Cách 2
-//					driver.get(e.getAttribute("href"));
-					// Cách 3
-//					js.executeScript("arguments[0].click();", e);
+					driver.get(e.getAttribute("href"));
 					getFilterElements();
 					config();
 					break;
@@ -98,15 +90,7 @@ public class FPT extends TGDD {
 			e = elements.get(i);
 			for (String string : strings) {
 				if (e.getAttribute("title").equals(string)) {
-					// Cách 1
-//					Actions action = new Actions(driver);
-//					Actions move = action.moveToElement(e);
-					wait.until(ExpectedConditions.elementToBeClickable(e)).click();
-//					move.click().perform();
-					// Cách 2
-//					driver.get(e.getAttribute("href"));
-					// Cách 3
-//					js.executeScript("arguments[0].click();", e);
+					driver.get(e.getAttribute("href"));
 					getFilterElements();
 					config();
 					elements = filters.get(index)

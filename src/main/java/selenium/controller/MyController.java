@@ -25,6 +25,9 @@ import selenium.page.TGDD;
 public class MyController {
 
 	private FilterList filterList = new FilterList();
+	List<Result> results;
+	ChromeDriver driver;
+	PhoneConfiguration phone;
 
 	private ChromeDriver initChromeDriver() {
 		String webDriverPath = "C:/Users/THANHTRUNG/OneDrive - student.ptithcm.edu.vn/Documents/NCKH/chromedriver.exe";
@@ -46,8 +49,8 @@ public class MyController {
 	}
 
 	@RequestMapping(value = "result" , method = RequestMethod.POST)
-	public String postHome(ModelMap model, @ModelAttribute("phoneConfiguration") PhoneConfiguration phone)
-			throws InterruptedException {
+	public String postHome(ModelMap model, @ModelAttribute("phoneConfiguration") PhoneConfiguration phone) {
+		this.phone = phone;
 		if (phone.getBrand() == null
 				&& phone.getPriceRange() ==null
 				&& phone.getRam() == null
@@ -59,29 +62,22 @@ public class MyController {
 			return "index";
 		}
 		
-		List<Result> results = new ArrayList<Result>();
-		ChromeDriver driver = this.initChromeDriver();
-
-		//////////////////////////////// BEGIN TGDD - DMX
-		TGDD tgdd = new TGDD(driver);
-		DMX dmx = new DMX(driver);
-		String resultTGDD = tgdd.run(phone, results);
-		String resultDMX = dmx.run(phone, results);
+		driver = initChromeDriver();
+		results = new ArrayList<Result>();
+		String resultTGDD = runOnTGDD();
+		String resultDMX = runOnDMX();
+		String resultFPT = runOnFPT();
+		
 		if (!resultTGDD.isEmpty()) {
 			model.addAttribute("tgdd_message", resultTGDD);
 		}
 		if (!resultDMX.isEmpty()) {
 			model.addAttribute("dmx_message", resultDMX);
 		}
-		//////////////////////////////// END TGDD - DMX
-		
-		//////////////////////////////// BEGIN FPT
-		FPT fpt = new FPT(driver);
-		String resultFPT = fpt.run(phone, results);
 		if (!resultFPT.isEmpty()) {
 			model.addAttribute("fpt_message", resultFPT);
 		}
-		//////////////////////////////// END FPT
+
 		if (results.isEmpty()) {
 				model.addAttribute("message", "Không có sản phẩm nào theo cấu hình vừa chọn!");
 				model.addAttribute("ft", filterList);
@@ -93,5 +89,20 @@ public class MyController {
 			driver.quit();
 			return "show-result";
 		}
+	}
+	
+	private String runOnTGDD() {
+		TGDD tgdd = new TGDD(driver);
+		return tgdd.run(phone, results);
+	}
+	
+	private String runOnDMX() {
+		DMX dmx = new DMX(driver);
+		return dmx.run(phone, results);
+	}
+	
+	private String runOnFPT() {
+		FPT fpt = new FPT(driver);
+		return fpt.run(phone, results);
 	}
 }
