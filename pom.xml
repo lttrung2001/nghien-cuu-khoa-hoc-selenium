@@ -35,7 +35,7 @@
 		<dependency>
 			<groupId>org.seleniumhq.selenium</groupId>
 			<artifactId>selenium-java</artifactId>
-			<version>4.3.0</version><!--$NO-MVN-MAN-VER$-->
+			<version>4.4.0</version><!--$NO-MVN-MAN-VER$-->
 		</dependency>
 		<dependency>
 			<groupId>org.apache.tomcat.embed</groupId>

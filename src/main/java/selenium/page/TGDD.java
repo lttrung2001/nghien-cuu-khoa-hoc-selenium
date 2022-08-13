@@ -3,6 +3,9 @@ package selenium.page;
 import java.time.Duration;
 
 
+
+
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,9 +13,11 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.ElementClickInterceptedException;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -101,9 +106,14 @@ public class TGDD {
 		int height = element.findElement(By.xpath("./..")).getSize().getHeight();
 		js.executeScript(String.format("arguments[0].scrollTop = %d;", height), elementScrolled);
 	}
+	
+	public WebElement getParentElement(WebElement child) {
+		return child.findElement(By.xpath("./.."));
+	}
 
 	public void collectProduct(WebElement element) {
-		js.executeScript("arguments[0].scrollIntoView(true);", element);
+//		js.executeScript("arguments[0].scrollIntoView(true);", element);
+		new Actions(driver).moveToElement(element).build().perform();
 		List<WebElement> detailElements = element.findElements(By.cssSelector(".utility>p"));
 		List<String> productDetails = new ArrayList<String>();
 
@@ -129,7 +139,7 @@ public class TGDD {
 				for (WebElement e : brandList) {
 					if (e.getAttribute("data-name").toLowerCase().contains(str)) {
 						wait.until(ExpectedConditions.elementToBeClickable(e));
-						e.click();
+						js.executeScript("arguments[0].click();", e);
 						break;
 					}
 				}
@@ -143,7 +153,7 @@ public class TGDD {
 				for (String str : strings) {
 					if (e.getText().contains(str)) {
 						wait.until(ExpectedConditions.elementToBeClickable(e));
-						e.click();
+						js.executeScript("arguments[0].click();", e);
 						break;
 					}
 				}
@@ -155,6 +165,7 @@ public class TGDD {
 		List<WebElement> list = filterTable.findElements(By.cssSelector(".show-total-item"));
 		filterBrand(phone.getBrand());
 		scrollElement(filterTable, list.get(0));
+		
 
 		filterOther(phone.getPriceRange(), priceList);
 		scrollElement(filterTable, list.get(1));
@@ -180,7 +191,7 @@ public class TGDD {
 		} catch (NoSuchElementException e) {
 			throw new NoSuchElementException("Tìm kiếm phần tử không tồn tại");
 		} catch (TimeoutException e) {
-			throw new TimeoutException("Trang web phản hồi quá lâu");
+			throw new TimeoutException("Trang web phản hồi quá lâu getTotalNumber");
 		}
 	}
 
@@ -192,24 +203,30 @@ public class TGDD {
 			} catch (ElementClickInterceptedException e) {
 				throw new ElementClickInterceptedException("Không thể thao tác với phần tử trên trang web để hiển thị danh sách kết quả tìm kiếm");
 			} catch (TimeoutException e) {
-				throw new TimeoutException("Trang web phản hồi quá lâu");
+				throw new TimeoutException("Trang web phản hồi quá lâu loadAllProduct 1");
 			}
 			if (totalProduct > defaultNumber) {
-				int tmp = defaultNumber;
+				WebElement preloader = driver.findElement(By.cssSelector("#preloader"));
 				by = By.cssSelector("div.view-more>a");
-				while (tmp < totalProduct) {
-					try {
-						WebElement preloader = driver.findElement(By.cssSelector("#preloader"));
-						wait.until(ExpectedConditions.attributeToBe(preloader, "style", "display: none;"));
+				int tmp = defaultNumber;
+				try {
+					wait.until(ExpectedConditions.attributeToBe(preloader, "style", "display: none;"));
+					System.out.println("After display none");
+					while (tmp < totalProduct) {						
 						wait.until(ExpectedConditions.visibilityOfElementLocated(by));
-						wait.until(ExpectedConditions.elementToBeClickable(by)).click();
+						System.out.println("After presence");
+						wait.until(ExpectedConditions.elementToBeClickable(by));
+						js.executeScript("arguments[0].click();", driver.findElement(by));
+						System.out.println("After click");
+						wait.until(ExpectedConditions.invisibilityOfElementLocated(By.className("bubblingG")));
+						System.out.println("After invisibility");
 						tmp += totalProduct - tmp > 20 ? 20 : totalProduct - tmp;
 						wait.until(ExpectedConditions.numberOfElementsToBe(By.cssSelector(".item.ajaxed.__cate_42"), tmp));
-					} catch (ElementClickInterceptedException e) {
-						throw new ElementClickInterceptedException("Không thể thao tác với phần tử trên trang web để tải thêm kết quả");
-					} catch (TimeoutException e) {
-						throw new TimeoutException("Trang web phản hồi quá lâu");
 					}
+				} catch (ElementClickInterceptedException e) {
+					throw new ElementClickInterceptedException("Không thể thao tác với phần tử trên trang web để tải thêm kết quả");
+				} catch (TimeoutException e) {
+					throw new TimeoutException("Trang web phản hồi quá lâu loadAllProduct 2");
 				}
 			}
 		}
@@ -222,17 +239,21 @@ public class TGDD {
 					.until(ExpectedConditions.numberOfElementsToBe(By.cssSelector(".item.ajaxed.__cate_42"), totalProduct));
 			return resultElements;
 		} catch (TimeoutException e) {
-			throw new TimeoutException("Trang web phản hồi quá lâu");
+			throw new TimeoutException("Trang web phản hồi quá lâu checkEnoughProducts");
 		}
 	}
 
 	public void refreshItemAfterClickAndGetData(List<WebElement> resultElements, int i) {
-		try {
-			resultElements = wait.until(ExpectedConditions
-					.numberOfElementsToBe(By.cssSelector(".item.ajaxed.__cate_42"), totalProduct));
+		try {			
+			By by = By.cssSelector(".item.ajaxed.__cate_42.loading-border");
+			wait.until(ExpectedConditions.numberOfElementsToBe(by, 0));
+			by = By.cssSelector(".item.ajaxed.__cate_42");
+			resultElements = wait.until(ExpectedConditions.numberOfElementsToBe(by, totalProduct));
 			collectProduct(resultElements.get(i));
 		} catch (TimeoutException e) {
-			throw new TimeoutException("Trang web phản hồi quá lâu");
+			throw new TimeoutException("Trang web phản hồi quá lâu refreshItemAfterClickAndGetData");
+		} catch (StaleElementReferenceException e) {
+			throw new StaleElementReferenceException("Tham chiếu phần tử cũ");
 		}
 	}
 
@@ -241,9 +262,11 @@ public class TGDD {
 			resultElements = wait.until(ExpectedConditions
 					.numberOfElementsToBe(By.cssSelector(".item.ajaxed.__cate_42"), totalProduct));
 			optionElements = resultElements.get(i).findElements(By.cssSelector(".merge__item.item"));
-			optionElements.get(j).click();
+			wait.until(ExpectedConditions.elementToBeClickable(optionElements.get(j))).click();
 		} catch (TimeoutException e) {
-			throw new TimeoutException("Trang web phản hồi quá lâu");
+			throw new TimeoutException("Trang web phản hồi quá lâu tryToClickOption");
+		} catch (ElementClickInterceptedException e) {
+			tryToClickOption(resultElements, optionElements, i, j);
 		}
 	}
 

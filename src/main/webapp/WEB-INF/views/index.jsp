@@ -40,53 +40,46 @@
 	<form:form cssClass="container d-flex flex-column" method="post"
 		action="result" modelAttribute="phoneConfiguration">
 		<div class="filter-title">HÃNG</div>
-		<div class="d-flex justify-content-around flex-wrap">
-			<form:checkboxes cssClass="form-check form-check-inline"
+		<div class="d-flex  flex-wrap">
+			<form:checkboxes cssClass="item form-check form-check-inline"
 				items="${ft.brands }" path="brand" />
 		</div>
-		<br>
-		<br>
 		<div class="filter-title">KHOẢNG GIÁ</div>
-		<div class="d-flex justify-content-around flex-wrap">
-			<form:checkboxes cssClass="form-check form-check-inline"
+		<div class="d-flex  flex-wrap">
+			<form:checkboxes cssClass="item form-check form-check-inline"
 				items="${ft.priceRanges }" path="priceRange" />
 		</div>
-		<br>
-		<br>
 		<div class="filter-title">RAM</div>
-		<div class="d-flex justify-content-around flex-wrap">
-			<form:checkboxes cssClass="form-check form-check-inline"
+		<div class="d-flex  flex-wrap">
+			<form:checkboxes cssClass="item form-check form-check-inline"
 				items="${ft.ram }" path="ram" title="Ram" />
 		</div>
-		<br>
-		<br>
 		<div class="filter-title">BỘ NHỚ TRONG</div>
-		<div class="d-flex justify-content-around flex-wrap">
-			<form:checkboxes cssClass="form-check form-check-inline"
+		<div class="d-flex  flex-wrap">
+			<form:checkboxes cssClass="item form-check form-check-inline"
 				items="${ft.rom }" path="rom" />
 		</div>
-		<br>
-		<br>
 		<div class="filter-title">KÍCH THƯỚC MÀN HÌNH</div>
-		<div class="d-flex justify-content-around flex-wrap">
-			<form:checkboxes cssClass="form-check form-check-inline"
+		<div class="d-flex  flex-wrap">
+			<form:checkboxes cssClass="item form-check form-check-inline"
 				items="${ft.displaySize }" path="displaySize" />
 		</div>
-		<br>
-		<br>
 		<div class="filter-title">TÍNH NĂNG</div>
-		<div class="d-flex justify-content-around flex-wrap">
-			<form:checkboxes cssClass="form-check form-check-inline"
+		<div class="d-flex  flex-wrap">
+			<form:checkboxes cssClass="item form-check form-check-inline"
 				items="${ft.specialFeatures }" path="specialFeature" />
 		</div>
-		<br>
 		<form:button class="btn btn-primary">Tìm kiếm</form:button>
 	</form:form>
 	<script type="text/javascript">
 		$(document).ready(function () {
-		    $('input[type="checkbox"]').addClass("btn-check").css('display','none');
+			$('input:checked').next().addClass('btn-primary');
+		    $('input[type="checkbox"]')
+// 		    .css('display','none')	
+		    .addClass("btn-check");
 		    $('label').addClass("btn btn-outline-primary")
-		    	.css('cursor', 'pointer');
+		    	.css('cursor', 'pointer')
+		    	.css('margin-right', '4px');
 		    $('label').on('click', function () {
 				onCheck(this);
 			});

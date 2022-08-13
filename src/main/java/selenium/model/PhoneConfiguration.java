@@ -1,5 +1,4 @@
 package selenium.model;
-
 public class PhoneConfiguration {
 	@Override
 	public String toString() {

@@ -51,12 +51,12 @@ public class MyController {
 	@RequestMapping(value = "result" , method = RequestMethod.POST)
 	public String postHome(ModelMap model, @ModelAttribute("phoneConfiguration") PhoneConfiguration phone) {
 		this.phone = phone;
-		if (phone.getBrand() == null
-				&& phone.getPriceRange() ==null
-				&& phone.getRam() == null
-				&& phone.getRom() == null
-				&& phone.getSpecialFeature() == null
-				&& phone.getDisplaySize() == null) {
+		if (phone.getBrand().length == 0
+				&& phone.getPriceRange().length == 0
+				&& phone.getRam().length == 0
+				&& phone.getRom().length == 0
+				&& phone.getSpecialFeature().length == 0
+				&& phone.getDisplaySize().length == 0) {
 			model.addAttribute("message", "Vui lòng chọn ít nhất 1 thuộc tính!");
 			model.addAttribute("ft", filterList);
 			return "index";
