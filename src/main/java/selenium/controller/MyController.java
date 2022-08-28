@@ -3,6 +3,9 @@ package selenium.controller;
 import java.time.Duration;
 
 
+
+
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,6 +16,7 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import selenium.model.FilterList;
 import selenium.model.PhoneConfiguration;
@@ -30,7 +34,7 @@ public class MyController {
 	PhoneConfiguration phone;
 
 	private ChromeDriver initChromeDriver() {
-		String webDriverPath = "C:/Users/THANHTRUNG/OneDrive - student.ptithcm.edu.vn/Documents/NCKH/chromedriver.exe";
+		String webDriverPath = "C:\\Users\\THANHTRUNG\\OneDrive - student.ptithcm.edu.vn\\Desktop\\eclipse_workspace\\NCKH_BOOT\\src\\main\\resources\\chromedriver.exe";
 		System.setProperty("webdriver.chrome.driver", webDriverPath);
 		ChromeOptions options = new ChromeOptions();
 		ChromeDriver driver = new ChromeDriver(options);
@@ -64,9 +68,9 @@ public class MyController {
 		
 		driver = initChromeDriver();
 		results = new ArrayList<Result>();
-		String resultTGDD = runOnTGDD();
-		String resultDMX = runOnDMX();
-		String resultFPT = runOnFPT();
+		String resultTGDD = new TGDD(driver).run(phone, results);
+		String resultDMX = new DMX(driver).run(phone, results);
+		String resultFPT = new FPT(driver).run(phone, results);
 		
 		if (!resultTGDD.isEmpty()) {
 			model.addAttribute("tgdd_message", resultTGDD);
@@ -91,18 +95,35 @@ public class MyController {
 		}
 	}
 	
-	private String runOnTGDD() {
-		TGDD tgdd = new TGDD(driver);
-		return tgdd.run(phone, results);
-	}
-	
-	private String runOnDMX() {
-		DMX dmx = new DMX(driver);
-		return dmx.run(phone, results);
-	}
-	
-	private String runOnFPT() {
-		FPT fpt = new FPT(driver);
-		return fpt.run(phone, results);
+	@RequestMapping(value = "search", method = RequestMethod.POST, params = "btnSearch")
+	public String postSearch(ModelMap model, @RequestParam("key") String key,@ModelAttribute("phoneConfiguration") PhoneConfiguration phone) {
+		if (key.isBlank()) {
+			model.addAttribute("message", "Nhập thông tin để tìm kiếm");
+			model.addAttribute("ft", filterList);
+			return "index";
+		}
+		
+		driver = initChromeDriver();
+		results = new ArrayList<Result>();
+		String resultTGDD = new TGDD(driver).search(key, results);
+		String resultDMX = new DMX(driver).search(key, results);
+		
+		if (!resultTGDD.isEmpty()) {
+			model.addAttribute("tgdd_message", resultTGDD);
+		}
+		if (!resultDMX.isEmpty()) {
+			model.addAttribute("dmx_message", resultDMX);
+		}
+		
+		if (results.isEmpty()) {
+			model.addAttribute("message", "Không có sản phẩm nào theo cấu hình vừa tìm!");
+			model.addAttribute("ft", filterList);
+			driver.quit();
+			return "index";
+		} else {
+			model.addAttribute("resultList", results);
+			driver.quit();
+			return "search-result";
+		}
 	}
 }

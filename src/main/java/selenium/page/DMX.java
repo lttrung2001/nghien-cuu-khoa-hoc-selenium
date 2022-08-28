@@ -7,5 +7,6 @@ public class DMX extends TGDD {
 	public DMX(ChromeDriver driver) {
 		super(driver);
 		super.url = "https://www.dienmayxanh.com/dien-thoai";
+		super.baseUrl = "https://www.dienmayxanh.com/";
 	}
 }

@@ -14,11 +14,22 @@
 	src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"
 	integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ=="
 	crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<link rel="stylesheet"
+	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.2/css/all.min.css"
+	integrity="sha512-1sCRPdkRXhBV2PBLUdRb4tMg1w2YPf37qatUFeS7zlBy7jJI8Lf4VHwWfZZfpXtYSLy85pkm9GaYVYMfw5BC1A=="
+	crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link
+	href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700,800,900"
+	rel="stylesheet">
+
+<link rel="stylesheet"
+	href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="/css/style.css">
 <style type="text/css">
-	.filter-title {
-		font-weight: bold;
-		font-size: 18px;
-	}
+.filter-title {
+	font-weight: bold;
+	font-size: 18px;
+}
 </style>
 </head>
 <body>
@@ -37,64 +48,58 @@
 		<div class="alert alert-danger" role="alert">FPTSHOP message:
 			${fpt_message }</div>
 	</c:if>
-	<form:form cssClass="container d-flex flex-column" method="post"
-		action="result" modelAttribute="phoneConfiguration">
+
+	<nav class="container navbar navbar-light bg-light">
+		<form class="form-inline" action="search" method="post">
+			<input name="key" class="form-control mr-sm-2" type="search"
+				placeholder="Nhập cấu hình tìm kiếm" aria-label="Search">
+			<button name="btnSearch" value="btnSearch" class="btn btn-outline-success my-2 my-sm-0" type="submit">Tìm kiếm</button>
+		</form>
+	</nav>
+
+	<form:form cssClass="container d-flex flex-column bg-light"
+		method="post" action="result" modelAttribute="phoneConfiguration">
 		<div class="filter-title">HÃNG</div>
-		<div class="d-flex  flex-wrap">
-			<form:checkboxes cssClass="item form-check form-check-inline"
-				items="${ft.brands }" path="brand" />
-		</div>
+		<ul class="d-flex flex-wrap ks-cboxtags">
+			<form:checkboxes element="li"
+				cssClass="item form-check form-check-inline" items="${ft.brands }"
+				path="brand" />
+		</ul>
 		<div class="filter-title">KHOẢNG GIÁ</div>
-		<div class="d-flex  flex-wrap">
-			<form:checkboxes cssClass="item form-check form-check-inline"
+		<ul class="d-flex  flex-wrap ks-cboxtags">
+			<form:checkboxes element="li"
+				cssClass="item form-check form-check-inline"
 				items="${ft.priceRanges }" path="priceRange" />
-		</div>
+		</ul>
 		<div class="filter-title">RAM</div>
-		<div class="d-flex  flex-wrap">
-			<form:checkboxes cssClass="item form-check form-check-inline"
-				items="${ft.ram }" path="ram" title="Ram" />
-		</div>
+		<ul class="d-flex  flex-wrap ks-cboxtags">
+			<form:checkboxes element="li"
+				cssClass="item form-check form-check-inline" items="${ft.ram }"
+				path="ram" title="Ram" />
+		</ul>
 		<div class="filter-title">BỘ NHỚ TRONG</div>
-		<div class="d-flex  flex-wrap">
-			<form:checkboxes cssClass="item form-check form-check-inline"
-				items="${ft.rom }" path="rom" />
-		</div>
+		<ul class="d-flex  flex-wrap ks-cboxtags">
+			<form:checkboxes element="li"
+				cssClass="item form-check form-check-inline" items="${ft.rom }"
+				path="rom" />
+		</ul>
 		<div class="filter-title">KÍCH THƯỚC MÀN HÌNH</div>
-		<div class="d-flex  flex-wrap">
-			<form:checkboxes cssClass="item form-check form-check-inline"
+		<ul class="d-flex  flex-wrap ks-cboxtags">
+			<form:checkboxes element="li"
+				cssClass="item form-check form-check-inline"
 				items="${ft.displaySize }" path="displaySize" />
-		</div>
+		</ul>
 		<div class="filter-title">TÍNH NĂNG</div>
-		<div class="d-flex  flex-wrap">
-			<form:checkboxes cssClass="item form-check form-check-inline"
+		<ul class="d-flex  flex-wrap ks-cboxtags">
+			<form:checkboxes element="li"
+				cssClass="item form-check form-check-inline"
 				items="${ft.specialFeatures }" path="specialFeature" />
-		</div>
+		</ul>
 		<form:button class="btn btn-primary">Tìm kiếm</form:button>
 	</form:form>
-	<script type="text/javascript">
-		$(document).ready(function () {
-			$('input:checked').next().addClass('btn-primary');
-		    $('input[type="checkbox"]')
-// 		    .css('display','none')	
-		    .addClass("btn-check");
-		    $('label').addClass("btn btn-outline-primary")
-		    	.css('cursor', 'pointer')
-		    	.css('margin-right', '4px');
-		    $('label').on('click', function () {
-				onCheck(this);
-			});
-		})
-		function onCheck(element) {
-			const label = $(element);
-			const checkbox = label.prev();
-			if (checkbox.is(':checked')) {
-				label.removeClass('btn-primary');
-				label.addClass('btn-outline-primary');
-			} else {
-				label.removeClass('btn-outline-primary');
-				label.addClass('btn-primary');
-			}
-		}
-	</script>
+	<script src="/js/jquery.min.js"></script>
+	<script src="/js/popper.js"></script>
+	<script src="/js/bootstrap.min.js"></script>
+	<script src="/js/main.js"></script>
 </body>
 </html>

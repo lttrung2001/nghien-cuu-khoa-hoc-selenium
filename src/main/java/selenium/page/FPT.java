@@ -126,18 +126,16 @@ public class FPT extends TGDD {
 	public String run(PhoneConfiguration phone, List<Result> allResults) {
 		this.phone = phone;
 		try {
-			connect();
+			connect(url);
 			getFilterElements();
 			config();
 			filterAll(phone);
-			allResults.addAll(getResults());
+			allResults.addAll(getResults(false));
 			return "";
 		} catch (Exception e) {
 			return e.getMessage();
 		}
 	}
-	
-	
 	
 	@Override
 	public void collectProduct(WebElement element) {
@@ -202,7 +200,7 @@ public class FPT extends TGDD {
 	}
 	
 	@Override
-	public List<Result> getResults() {
+	public List<Result> getResults(boolean isSearch) {
 
 		String total = "";
 		try {

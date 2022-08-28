@@ -1,5 +1,10 @@
 package selenium.page;
 
+import java.io.IOException;
+
+
+
+
 import java.time.Duration;
 
 
@@ -9,6 +14,9 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.openqa.selenium.By;
 import org.openqa.selenium.ElementClickInterceptedException;
 import org.openqa.selenium.JavascriptExecutor;
@@ -21,12 +29,17 @@ import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.Response;
+
 import selenium.model.FilterList;
 import selenium.model.PhoneConfiguration;
 import selenium.model.Result;
 
 public class TGDD {
 	public String url = "https://www.thegioididong.com/dtdd";
+	public String baseUrl = "https://www.thegioididong.com/";
 	public static int defaultNumber = 20;
 	public ChromeDriver driver;
 	public JavascriptExecutor js;
@@ -47,21 +60,75 @@ public class TGDD {
 	public TGDD(ChromeDriver driver) {
 		this.driver = driver;
 		js = (JavascriptExecutor) driver;
-		wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+		wait = new WebDriverWait(driver, Duration.ofSeconds(30));
 		totalProduct = 0;
 	}
 
 	public String run(PhoneConfiguration phone, List<Result> allResults) {
 		try {
-			connect();
+			connect(url);
 			getFilterElements();
 			config();
 			filterAll(phone);
-			allResults.addAll(getResults());
+			{
+				getTotalNumber();
+				if (totalProduct == 0) return "";
+			}
+			loadAllProduct();
+			allResults.addAll(getResults(false));
 			return "";
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 			return e.getMessage();
+		}
+	}
+	
+	public String search(String key, List<Result> allResults) {
+		try {
+			connect(baseUrl+"tim-kiem?key="+key);
+			showSearchList();
+			// Warning: Handle getSearchProducts twice
+			if (getSearchProducts().size() == 0) {
+				return "";
+			}
+			allResults.addAll(getResults(true));
+			return "";
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+			return e.getMessage();
+		}
+	}
+	
+	public void showSearchList() {
+		try {
+			WebElement menu = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".searchCategoryResult")));
+			List<WebElement> list = menu.findElements(By.tagName("a"));
+			System.out.println("List size: "+list.size());
+			for (WebElement webElement : list) {
+				if (webElement.getText().contains("Điện thoại")) {
+					totalProduct = Integer.parseInt(webElement.getAttribute("data-total"));
+					System.out.println("Total search: "+totalProduct);
+					webElement.click();
+					break;
+				}
+			}
+		} catch (NoSuchElementException e) {
+			throw new NoSuchElementException("Không tìm thấy kết quả phù hợp");
+		} catch (ElementClickInterceptedException e) {
+			throw new ElementClickInterceptedException("Không thể tương tác với phần tử trên trang");
+		} catch (TimeoutException e) {
+			throw new TimeoutException("Trang web phản hồi quá lâu showSearchList");
+		}
+	}
+	
+	public List<WebElement> getSearchProducts() {
+		List<WebElement> resultElements = null;
+		try {
+			resultElements = wait
+					.until(ExpectedConditions.numberOfElementsToBe(By.cssSelector(".item.cat42"), totalProduct));
+			return resultElements;
+		} catch (TimeoutException e) {
+			throw new TimeoutException("Trang web phản hồi quá lâu getSearchProducts");
 		}
 	}
 
@@ -94,7 +161,7 @@ public class TGDD {
 		}
 	}
 
-	public void connect() {
+	public void connect(String url) {
 		try {
 			driver.get(url);
 		} catch (TimeoutException e) {
@@ -111,10 +178,9 @@ public class TGDD {
 		return child.findElement(By.xpath("./.."));
 	}
 
-	public void collectProduct(WebElement element) {
-//		js.executeScript("arguments[0].scrollIntoView(true);", element);
+	public void collectProduct(WebElement element) throws IOException {
 		new Actions(driver).moveToElement(element).build().perform();
-		List<WebElement> detailElements = element.findElements(By.cssSelector(".utility>p"));
+//		List<WebElement> detailElements = element.findElements(By.cssSelector(".utility>p"));
 		List<String> productDetails = new ArrayList<String>();
 
 		String img = element.findElement(By.cssSelector(".item-img.item-img_42>img")).getAttribute("src");
@@ -124,12 +190,26 @@ public class TGDD {
 		try {
 			price = element.findElement(By.cssSelector("strong.price")).getText();
 		} catch (NoSuchElementException e) {
-			price = "Chưa có";
+			price = "Không có thông tin";
 		}
-		if (detailElements.size() != 0) {
-			for (WebElement detailElement : detailElements)
-				productDetails.add(detailElement.getText());
-		}
+//		if (detailElements.size() != 0) {
+//			for (WebElement detailElement : detailElements) {
+//				productDetails.add(detailElement.getText());				
+//			}
+//		} else {
+			Request detailRequest = new Request.Builder()
+					.url(productLink)
+					.build();
+			Response detailResponse = new OkHttpClient().newCall(detailRequest).execute();
+			if (detailResponse.code() == 200) {
+				Document document = Jsoup.parse(detailResponse.body().string());
+				List<Element> lilefts = document.getElementsByClass("lileft");
+				List<Element> lirights = document.getElementsByClass("liright");
+				for (int i = 0; i < lilefts.size(); i++) {
+					productDetails.add(lilefts.get(i).text()+lirights.get(i).text());
+				}
+			}
+//		}
 		results.add(new Result(img, name, price, productLink, productDetails));
 	}
 
@@ -177,15 +257,11 @@ public class TGDD {
 		filterOther(phone.getDisplaySize(), displaySizeList);
 		
 		filterOther(phone.getSpecialFeature(), featureList);
-
-		getTotalNumber();
-		loadAllProduct();
 	}
 
 	public void getTotalNumber() {
 		By by = By.cssSelector(".total-reloading");
 		try {
-			wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".btn-filter-readmore.prevent")));
 			wait.until(ExpectedConditions.not(ExpectedConditions.textToBePresentInElementLocated(by, "...")));
 			totalProduct = Integer.parseInt(driver.findElement(by).getText());
 		} catch (NoSuchElementException e) {
@@ -196,7 +272,7 @@ public class TGDD {
 	}
 
 	public void loadAllProduct() {
-		if (totalProduct != 0) {
+		if (totalProduct > 0) {
 			By by = By.cssSelector("a.btn-filter-readmore");
 			try {
 				wait.until(ExpectedConditions.elementToBeClickable(by)).click();
@@ -211,15 +287,11 @@ public class TGDD {
 				int tmp = defaultNumber;
 				try {
 					wait.until(ExpectedConditions.attributeToBe(preloader, "style", "display: none;"));
-					System.out.println("After display none");
 					while (tmp < totalProduct) {						
 						wait.until(ExpectedConditions.visibilityOfElementLocated(by));
-						System.out.println("After presence");
 						wait.until(ExpectedConditions.elementToBeClickable(by));
 						js.executeScript("arguments[0].click();", driver.findElement(by));
-						System.out.println("After click");
 						wait.until(ExpectedConditions.invisibilityOfElementLocated(By.className("bubblingG")));
-						System.out.println("After invisibility");
 						tmp += totalProduct - tmp > 20 ? 20 : totalProduct - tmp;
 						wait.until(ExpectedConditions.numberOfElementsToBe(By.cssSelector(".item.ajaxed.__cate_42"), tmp));
 					}
@@ -243,7 +315,7 @@ public class TGDD {
 		}
 	}
 
-	public void refreshItemAfterClickAndGetData(List<WebElement> resultElements, int i) {
+	public void refreshItemAfterClickAndGetData(List<WebElement> resultElements, int i) throws IOException {
 		try {			
 			By by = By.cssSelector(".item.ajaxed.__cate_42.loading-border");
 			wait.until(ExpectedConditions.numberOfElementsToBe(by, 0));
@@ -270,11 +342,15 @@ public class TGDD {
 		}
 	}
 
-	public List<Result> getResults() {
+	public List<Result> getResults(boolean isSearch) throws IOException {
 		List<WebElement> resultElements = null; // Danh sach san pham thu duoc
 		List<WebElement> optionElements = null; // Cac nut option cua 1 san pham
-		// Kiem tra load du san pham
-		resultElements = checkEnoughProducts();
+		if (isSearch) {
+			resultElements = getSearchProducts();
+		} else {
+			// Kiem tra load du san pham
+			resultElements = checkEnoughProducts();
+		}
 		// Get each product
 		for (int i = 0; i < resultElements.size(); i++) {
 			optionElements = resultElements.get(i).findElements(By.cssSelector(".merge__item.item"));
