@@ -64,4 +64,9 @@ public class Result {
 		this.details = details;
 	}
 
+	@Override
+	public String toString() {
+		return "Result [imageLink=" + imageLink + ", name=" + name + ", price=" + price + ", productLink=" + productLink
+				+ ", details=" + details + "]";
+	}
 }

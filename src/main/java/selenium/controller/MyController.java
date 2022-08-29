@@ -70,7 +70,7 @@ public class MyController {
 		results = new ArrayList<Result>();
 		String resultTGDD = new TGDD(driver).run(phone, results);
 		String resultDMX = new DMX(driver).run(phone, results);
-		String resultFPT = new FPT(driver).run(phone, results);
+		String resultFPT = new FPT(driver, phone).run(phone, results);
 		
 		if (!resultTGDD.isEmpty()) {
 			model.addAttribute("tgdd_message", resultTGDD);
@@ -96,7 +96,7 @@ public class MyController {
 	}
 	
 	@RequestMapping(value = "search", method = RequestMethod.POST, params = "btnSearch")
-	public String postSearch(ModelMap model, @RequestParam("key") String key,@ModelAttribute("phoneConfiguration") PhoneConfiguration phone) {
+	public String postSearch(ModelMap model, @RequestParam("key") String key, @ModelAttribute("phoneConfiguration") PhoneConfiguration phone) {
 		if (key.isBlank()) {
 			model.addAttribute("message", "Nhập thông tin để tìm kiếm");
 			model.addAttribute("ft", filterList);
@@ -105,14 +105,18 @@ public class MyController {
 		
 		driver = initChromeDriver();
 		results = new ArrayList<Result>();
-		String resultTGDD = new TGDD(driver).search(key, results);
-		String resultDMX = new DMX(driver).search(key, results);
+//		String resultTGDD = new TGDD(driver).search(key, results);
+//		String resultDMX = new DMX(driver).search(key, results);
+		String resultFPT = new FPT(driver, phone).search(key, results);
 		
-		if (!resultTGDD.isEmpty()) {
-			model.addAttribute("tgdd_message", resultTGDD);
-		}
-		if (!resultDMX.isEmpty()) {
-			model.addAttribute("dmx_message", resultDMX);
+//		if (!resultTGDD.isEmpty()) {
+//			model.addAttribute("tgdd_message", resultTGDD);
+//		}
+//		if (!resultDMX.isEmpty()) {
+//			model.addAttribute("dmx_message", resultDMX);
+//		}
+		if (!resultFPT.isEmpty()) {
+			model.addAttribute("fpt_message", resultFPT);
 		}
 		
 		if (results.isEmpty()) {

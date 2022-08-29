@@ -103,7 +103,6 @@ public class TGDD {
 		try {
 			WebElement menu = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".searchCategoryResult")));
 			List<WebElement> list = menu.findElements(By.tagName("a"));
-			System.out.println("List size: "+list.size());
 			for (WebElement webElement : list) {
 				if (webElement.getText().contains("Điện thoại")) {
 					totalProduct = Integer.parseInt(webElement.getAttribute("data-total"));
