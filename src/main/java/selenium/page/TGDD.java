@@ -261,6 +261,7 @@ public class TGDD {
 	public void getTotalNumber() {
 		By by = By.cssSelector(".total-reloading");
 		try {
+			// Bug here
 			wait.until(ExpectedConditions.not(ExpectedConditions.textToBePresentInElementLocated(by, "...")));
 			totalProduct = Integer.parseInt(driver.findElement(by).getText());
 		} catch (NoSuchElementException e) {
