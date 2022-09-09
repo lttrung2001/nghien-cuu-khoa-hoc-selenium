@@ -179,7 +179,6 @@ public class TGDD {
 
 	public void collectProduct(WebElement element) throws IOException {
 		new Actions(driver).moveToElement(element).build().perform();
-//		List<WebElement> detailElements = element.findElements(By.cssSelector(".utility>p"));
 		List<String> productDetails = new ArrayList<String>();
 
 		String img = element.findElement(By.cssSelector(".item-img.item-img_42>img")).getAttribute("src");
@@ -191,11 +190,6 @@ public class TGDD {
 		} catch (NoSuchElementException e) {
 			price = "Không có thông tin";
 		}
-//		if (detailElements.size() != 0) {
-//			for (WebElement detailElement : detailElements) {
-//				productDetails.add(detailElement.getText());				
-//			}
-//		} else {
 			Request detailRequest = new Request.Builder()
 					.url(productLink)
 					.build();
@@ -204,11 +198,16 @@ public class TGDD {
 				Document document = Jsoup.parse(detailResponse.body().string());
 				List<Element> lilefts = document.getElementsByClass("lileft");
 				List<Element> lirights = document.getElementsByClass("liright");
-				for (int i = 0; i < lilefts.size(); i++) {
-					productDetails.add(lilefts.get(i).text()+lirights.get(i).text());
+				if (lilefts.isEmpty()) {
+					element.findElement(By.className("utility")).findElements(By.tagName("p")).forEach(propertyElement -> {
+						productDetails.add(propertyElement.getText());
+					});
+				} else {
+					for (int i = 0; i < lilefts.size(); i++) {
+						productDetails.add(lilefts.get(i).text()+lirights.get(i).text());
+					}
 				}
 			}
-//		}
 		results.add(new Result(img, name, price, productLink, productDetails));
 	}
 
@@ -261,7 +260,7 @@ public class TGDD {
 	public void getTotalNumber() {
 		By by = By.cssSelector(".total-reloading");
 		try {
-			// Bug here
+			wait.until(ExpectedConditions.elementToBeClickable(by));
 			wait.until(ExpectedConditions.not(ExpectedConditions.textToBePresentInElementLocated(by, "...")));
 			totalProduct = Integer.parseInt(driver.findElement(by).getText());
 		} catch (NoSuchElementException e) {

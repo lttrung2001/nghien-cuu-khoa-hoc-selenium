@@ -140,7 +140,12 @@ public class FPT extends TGDD {
 	@Override
 	public void collectProduct(WebElement element) {
 		js.executeScript("arguments[0].scrollIntoView(true);", element);
-		String img = element.findElement(By.tagName("img")).getAttribute("src");
+		String img = "";
+		try {
+			img = element.findElement(By.tagName("img")).getAttribute("src");
+		} catch (Exception e) {
+			
+		}
 		String name = element.findElement(By.cssSelector(".cdt-product__name")).getText();
 		String price = "";
 		try {
@@ -153,7 +158,6 @@ public class FPT extends TGDD {
 			}
 		}
 		String url = element.findElement(By.cssSelector(".cdt-product__name")).getAttribute("href");
-		// Sai o day
 		List<String> details = new ArrayList<String>();
 		List<WebElement> list = element.findElements(By.cssSelector(".cdt-product__config__param"));
 		if (!list.isEmpty()) {
@@ -173,7 +177,6 @@ public class FPT extends TGDD {
 	}
 
 	public boolean isRightProduct(PhoneConfiguration phone, WebElement e, String productName) {
-		FilterList ft = new FilterList();
 		if (phone.getRam() == null) {
 			phone.setRam(new String[] {});
 		}
@@ -185,7 +188,6 @@ public class FPT extends TGDD {
 		}
 		List<String> RAMs = Arrays.asList(phone.getRam());
 		List<String> ROMs = Arrays.asList(phone.getRom());
-		List<String> SFs = Arrays.asList(phone.getSpecialFeature());
 		boolean res = true;
 		if (!RAMs.isEmpty() && e.getAttribute("data-title").equals("RAM")
 				&& !RAMs.contains(e.getAttribute("textContent"))) {
@@ -194,13 +196,6 @@ public class FPT extends TGDD {
 		if (!ROMs.isEmpty() && e.getAttribute("data-title").equals("Bộ nhớ trong")
 				&& !ROMs.contains(e.getAttribute("textContent"))) {
 			res = false;
-		}
-		try {
-			if (!SFs.isEmpty() && SFs.contains(ft.getSpecialFeatures()[1]) && !productName.contains(" 5G ")) {
-				res = false;
-			}
-		} catch (IndexOutOfBoundsException ex) {
-			throw new IndexOutOfBoundsException("Bộ lọc của trang web tìm kiếm đã bị thay đổi");
 		}
 		return res;
 	}
