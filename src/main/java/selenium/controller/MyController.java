@@ -8,6 +8,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import selenium.page.DMX;
+import selenium.page.FPT;
 import selenium.page.TGDD;
 
 @Controller
@@ -16,7 +18,16 @@ public class MyController {
 	@ResponseBody
 	public String home() {
 		ChromeDriver driver = initChromeDriver();
-		return new TGDD(driver).fetchData();
+		TGDD tgdd = new TGDD(driver);
+		tgdd.connect();
+		System.out.println(tgdd.fetchData());
+		DMX dmx = new DMX(driver);
+		dmx.connect();
+		System.out.println(dmx.fetchData());
+		FPT fpt = new FPT(driver);
+		fpt.connect();
+		System.out.println(fpt.fetchData());
+		return "";
 	}
 	
 	private ChromeDriver initChromeDriver() {
