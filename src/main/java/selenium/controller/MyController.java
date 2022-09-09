@@ -18,12 +18,12 @@ public class MyController {
 	@ResponseBody
 	public String home() {
 		ChromeDriver driver = initChromeDriver();
-		TGDD tgdd = new TGDD(driver);
-		tgdd.connect();
-		System.out.println(tgdd.fetchData());
-		DMX dmx = new DMX(driver);
-		dmx.connect();
-		System.out.println(dmx.fetchData());
+//		TGDD tgdd = new TGDD(driver);
+//		tgdd.connect();
+//		System.out.println(tgdd.fetchData());
+//		DMX dmx = new DMX(driver);
+//		dmx.connect();
+//		System.out.println(dmx.fetchData());
 		FPT fpt = new FPT(driver);
 		fpt.connect();
 		System.out.println(fpt.fetchData());

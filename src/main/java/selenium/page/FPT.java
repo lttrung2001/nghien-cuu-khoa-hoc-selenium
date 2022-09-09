@@ -1,5 +1,6 @@
 package selenium.page;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.openqa.selenium.By;
@@ -33,9 +34,7 @@ public class FPT extends TGDD {
 	@Override
 	public String fetchData() {
 		By productLocate = By.className("cdt-product");
-		By optionLocate = By.cssSelector(".mmr-box.item1");
 		List<WebElement> productElements;
-		List<WebElement> optionElements;
 		int start = 0;
 		int currentShow = 0;
 		do {
@@ -47,18 +46,7 @@ public class FPT extends TGDD {
 			System.out.println("start:"+start);
 			for (int i = start; i < productElements.size(); i++) {
 				new Actions(driver).moveToElement(productElements.get(i)).build().perform();
-				optionElements = productElements.get(i).findElements(optionLocate);
-				if (optionElements.isEmpty()) {
-					result.add(productElements.get(i).findElement(By.tagName("a")).getAttribute("href"));
-				} else {
-					for (int j = 0; j < optionElements.size(); j++) {
-						result.add(productElements.get(i).findElement(By.tagName("a")).getAttribute("href"));
-						optionElements.get(j).click();
-						productElements = wait
-								.until(ExpectedConditions.numberOfElementsToBe(productLocate, currentShow));
-						optionElements = productElements.get(i).findElements(optionLocate);
-					}
-				}
+				result.add(productElements.get(i).findElement(By.tagName("a")).getAttribute("href"));
 			}
 			if (currentShow < total) {
 				By viewMoreLocate = By.cssSelector("div.cdt-product--loadmore > a");
@@ -66,14 +54,20 @@ public class FPT extends TGDD {
 				viewMoreElement.click();
 			}
 		} while (currentShow < total);
-//		for (String url : result) {
-//			driver.get(url);
-//			try {
-//				driver.findElement(By.cssSelector(".btn-detail.btn-short-spec")).click();
-//			} catch (Exception e) {
-//				// TODO: handle exception
-//			}
-//		}
+		for (String productUrl : result) {
+			driver.get(productUrl);
+			
+			List<String> optionUrls = new ArrayList<String>();
+			driver.findElements(By.cssSelector(".st-select > a")).forEach(element -> {
+				optionUrls.add(element.getAttribute("href"));
+			});
+			for (int i = 1; i < optionUrls.size(); i++) {
+				driver.get(optionUrls.get(i));
+				WebElement showDetailElement = driver.findElement(By.cssSelector("a.re-link.js--open-modal2"));
+				new Actions(driver).moveToElement(showDetailElement).click().build().perform();
+				driver.close();
+			}
+		}
 		return result.toString();
 	}
 	
