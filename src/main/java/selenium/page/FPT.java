@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.interactions.Actions;
@@ -16,7 +17,7 @@ public class FPT extends TGDD {
 		url = "https://fptshop.com.vn/dien-thoai";
 		defaultNumber = 27;
 	}
-	
+
 	@Override
 	public void connect() {
 		try {
@@ -37,38 +38,49 @@ public class FPT extends TGDD {
 		List<WebElement> productElements;
 		int start = 0;
 		int currentShow = 0;
+		boolean havingPrice = true;
 		do {
 			start = currentShow;
 			currentShow += total - currentShow > defaultNumber ? defaultNumber : total - currentShow;
-			productElements = wait
-					.until(ExpectedConditions.numberOfElementsToBe(productLocate, currentShow));
-			System.out.println("currentShow:"+currentShow);
-			System.out.println("start:"+start);
+			productElements = wait.until(ExpectedConditions.numberOfElementsToBe(productLocate, currentShow));
+			System.out.println("currentShow:" + currentShow);
+			System.out.println("start:" + start);
 			for (int i = start; i < productElements.size(); i++) {
 				new Actions(driver).moveToElement(productElements.get(i)).build().perform();
-				result.add(productElements.get(i).findElement(By.tagName("a")).getAttribute("href"));
+				try {
+					productElements.get(i).findElement(By.className("progress"));
+					result.add(productElements.get(i).findElement(By.tagName("a")).getAttribute("href"));
+				} catch (NoSuchElementException e) {
+					try {
+						productElements.get(i).findElement(By.className("price"));
+						result.add(productElements.get(i).findElement(By.tagName("a")).getAttribute("href"));
+					} catch (NoSuchElementException e2) {
+						havingPrice = false;
+						break;
+					}
+				}
 			}
-			if (currentShow < total) {
+			if (havingPrice && currentShow < total) {
 				By viewMoreLocate = By.cssSelector("div.cdt-product--loadmore > a");
 				WebElement viewMoreElement = driver.findElement(viewMoreLocate);
 				viewMoreElement.click();
 			}
-		} while (currentShow < total);
+		} while (havingPrice && currentShow < total);
 		for (String productUrl : result) {
 			driver.get(productUrl);
-			
+
 			List<String> optionUrls = new ArrayList<String>();
 			driver.findElements(By.cssSelector(".st-select > a")).forEach(element -> {
 				optionUrls.add(element.getAttribute("href"));
 			});
 			for (int i = 1; i < optionUrls.size(); i++) {
 				driver.get(optionUrls.get(i));
-				WebElement showDetailElement = driver.findElement(By.cssSelector("a.re-link.js--open-modal2"));
-				new Actions(driver).moveToElement(showDetailElement).click().build().perform();
+				WebElement showDetailElement = wait
+						.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".l-pd-left")));
 				driver.close();
 			}
 		}
 		return result.toString();
 	}
-	
+
 }
