@@ -260,8 +260,8 @@ public class TGDD {
 	public void getTotalNumber() {
 		By by = By.cssSelector(".total-reloading");
 		try {
-			wait.until(ExpectedConditions.elementToBeClickable(by));
 			wait.until(ExpectedConditions.not(ExpectedConditions.textToBePresentInElementLocated(by, "...")));
+			wait.until(ExpectedConditions.not(ExpectedConditions.textToBe(by, "")));
 			totalProduct = Integer.parseInt(driver.findElement(by).getText());
 		} catch (NoSuchElementException e) {
 			throw new NoSuchElementException("Tìm kiếm phần tử không tồn tại");

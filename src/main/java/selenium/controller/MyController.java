@@ -69,15 +69,14 @@ public class MyController {
 		driver = initChromeDriver();
 		results = new ArrayList<Result>();
 		String resultTGDD = new TGDD(driver).run(phone, results);
-		String resultDMX = new DMX(driver).run(phone, results);
-		String resultFPT = new FPT(driver, phone).run(phone, results);
-		
 		if (!resultTGDD.isEmpty()) {
 			model.addAttribute("tgdd_message", resultTGDD);
 		}
+		String resultDMX = new DMX(driver).run(phone, results);
 		if (!resultDMX.isEmpty()) {
 			model.addAttribute("dmx_message", resultDMX);
 		}
+		String resultFPT = new FPT(driver, phone).run(phone, results);		
 		if (!resultFPT.isEmpty()) {
 			model.addAttribute("fpt_message", resultFPT);
 		}
