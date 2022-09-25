@@ -1,6 +1,7 @@
 package selenium.controller;
 
 import java.io.IOException;
+
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +35,6 @@ public class MyController {
 //		options.addArguments("--headless");
 //		options.addArguments("--disable-gpu");
 //		options.addArguments("--no-sandbox");
-//		ChromeDriver driver = new ChromeDriver(options);
 		ChromeDriver driver = (ChromeDriver) WebDriverManager.chromedriver().create();
 		// Xoa tat ca cookie
 		driver.manage().deleteAllCookies();
@@ -51,7 +51,7 @@ public class MyController {
 	}
 
 	@RequestMapping(value = "result" , method = RequestMethod.POST)
-	public String postHome(ModelMap model, @ModelAttribute("phoneConfiguration") PhoneConfiguration phone) throws IOException {
+	public String postHome(ModelMap model, @ModelAttribute("phoneConfiguration") PhoneConfiguration phone) throws IOException, InterruptedException {
 		if (phone.getBrand().length == 0
 				&& phone.getPriceRange().length == 0
 				&& phone.getRam().length == 0
@@ -62,66 +62,131 @@ public class MyController {
 			return "index";
 		}
 		
-		ChromeDriver driver = initChromeDriver();
 		results = new ArrayList<Result>();
-//		String resultTGDD = new TGDD(driver).run(phone, results);
-//		if (!resultTGDD.isEmpty()) {
-//			model.addAttribute("tgdd_message", resultTGDD);
-//		}
-//		String resultDMX = new DMX(driver).run(phone, results);
-//		if (!resultDMX.isEmpty()) {
-//			model.addAttribute("dmx_message", resultDMX);
-//		}
-		String resultFPT = new FPT(driver, phone).run(phone, results);		
-		if (!resultFPT.isEmpty()) {
-			model.addAttribute("fpt_message", resultFPT);
+		List<Result> results1 = new ArrayList<Result>();
+		List<Result> results2 = new ArrayList<Result>();
+		List<Result> results3 = new ArrayList<Result>();
+		
+		Thread t1 = new Thread(() -> {
+			try {
+				String resultTGDD = new TGDD(initChromeDriver()).run(phone, results1);
+				if (!resultTGDD.isEmpty()) {
+					model.addAttribute("tgdd_message", resultTGDD);
+				}
+			} catch (IOException e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+		});
+		Thread t2 = new Thread(() -> {
+			try {
+				String resultDMX = new DMX(initChromeDriver()).run(phone, results);
+				if (!resultDMX.isEmpty()) {
+					model.addAttribute("dmx_message", resultDMX);
+				}
+			} catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+		});
+		Thread t3 = new Thread(() -> {
+			try {
+				String resultFPT = new FPT(initChromeDriver(), phone).run(phone, results);
+				if (!resultFPT.isEmpty()) {
+					model.addAttribute("fpt_message", resultFPT);
+				}
+			} catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+		});
+		Thread[] threads = {t1, t2, t3};
+		for (Thread thread : threads) {
+			thread.start();
 		}
+		for (Thread thread : threads) {
+			thread.join();
+		}
+		
+		results.addAll(results1);
+		results.addAll(results2);
+		results.addAll(results3);	
 
 		if (results.isEmpty()) {
 				model.addAttribute("message", "Không có sản phẩm nào theo cấu hình vừa chọn!");
 				model.addAttribute("ft", filterList);
-				driver.quit();
 				return "index";				
 		} else {
 			model.addAttribute("resultList", results);
 			model.addAttribute("amountFinded", results.size());
-			driver.quit();
 			return "show-result";
 		}
 	}
 	
 	@RequestMapping(value = "search", method = RequestMethod.POST, params = "btnSearch")
-	public String postSearch(ModelMap model, @RequestParam("key") String key, @ModelAttribute("phoneConfiguration") PhoneConfiguration phone) throws IOException {
+	public String postSearch(ModelMap model, @RequestParam("key") String key, @ModelAttribute("phoneConfiguration") PhoneConfiguration phone) throws IOException, InterruptedException {
 		if (key.isBlank()) {
 			model.addAttribute("message", "Nhập thông tin để tìm kiếm");
 			model.addAttribute("ft", filterList);
 			return "index";
 		}
 		
-		ChromeDriver driver = initChromeDriver();
 		results = new ArrayList<Result>();
-		String resultTGDD = new TGDD(driver).search(key, results);
-		String resultDMX = new DMX(driver).search(key, results);
-		String resultFPT = new FPT(driver, phone).search(key, results);
+		List<Result> results1 = new ArrayList<Result>();
+		List<Result> results2 = new ArrayList<Result>();
+		List<Result> results3 = new ArrayList<Result>();
 		
-		if (!resultTGDD.isEmpty()) {
-			model.addAttribute("tgdd_message", resultTGDD);
+		Thread t1 = new Thread(() -> {
+			try {
+				String searchTGDD = new TGDD(initChromeDriver()).search(key, results1);
+				if (!searchTGDD.isEmpty()) {
+					model.addAttribute("tgdd_message", searchTGDD);
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		});
+		Thread t2 = new Thread(() -> {
+			try {
+				String searchDMX = new DMX(initChromeDriver()).search(key, results2);
+				if (!searchDMX.isEmpty()) {
+					model.addAttribute("tgdd_message", searchDMX);
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		});
+		Thread t3 = new Thread(() -> {
+			try {
+				String searchFPT = new FPT(initChromeDriver(), phone).search(key, results3);
+				if (!searchFPT.isEmpty()) {
+					model.addAttribute("tgdd_message", searchFPT);
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		});
+		Thread[] threads = {t1, t2, t3};
+		for (Thread thread : threads) {
+			thread.start();
 		}
-		if (!resultDMX.isEmpty()) {
-			model.addAttribute("dmx_message", resultDMX);
+		for (Thread thread : threads) {
+			thread.join();
 		}
-		if (!resultFPT.isEmpty()) {
-			model.addAttribute("fpt_message", resultFPT);
-		}
+		
+		results.addAll(results1);
+		results.addAll(results2);
+		results.addAll(results3);
 		
 		if (results.isEmpty()) {
 			model.addAttribute("message", "Không có sản phẩm nào theo cấu hình vừa tìm!");
 			model.addAttribute("ft", filterList);
-			driver.quit();
 			return "index";
 		} else {
 			model.addAttribute("resultList", results);
-			driver.quit();
 			return "search-result";
 		}
 	}

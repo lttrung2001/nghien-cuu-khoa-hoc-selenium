@@ -121,6 +121,7 @@ public class FPT extends TGDD {
 			config();
 			filterAll(phone);
 			allResults.addAll(getResults(false));
+			driver.quit();
 			return "";
 		} catch (Exception e) {
 			return e.getMessage();
@@ -238,6 +239,7 @@ public class FPT extends TGDD {
 		resultElements = wait.until(ExpectedConditions
 				.numberOfElementsToBe(By.cssSelector(productLocator), totalProduct));
 		// Bug
+		wait.until(driver -> !driver.findElements(By.cssSelector(productLocator)).get(i).equals(tmp));
 	}
 
 	@Override
@@ -245,6 +247,7 @@ public class FPT extends TGDD {
 		try {
 			connect(baseUrl + "tim-kiem/" + key + "?Loại%20Sản%20Phẩm=Điện%20thoại");
 			allResults.addAll(getResults(true));
+			driver.quit();
 			return "";
 		} catch (Exception e) {
 			return e.getMessage();

@@ -76,6 +76,7 @@ public class TGDD {
 			}
 			loadAllProduct();
 			allResults.addAll(getResults(false));
+			driver.quit();
 			return "";
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
@@ -91,6 +92,7 @@ public class TGDD {
 				return "";
 			}
 			allResults.addAll(getResults(true));
+			driver.quit();
 			return "";
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
