@@ -83,12 +83,6 @@
 				cssClass="item form-check form-check-inline" items="${ft.rom }"
 				path="rom" />
 		</ul>
-		<div class="filter-title">KÍCH THƯỚC MÀN HÌNH</div>
-		<ul class="d-flex  flex-wrap ks-cboxtags">
-			<form:checkboxes element="li"
-				cssClass="item form-check form-check-inline"
-				items="${ft.displaySize }" path="displaySize" />
-		</ul>
 		<div class="filter-title">TÍNH NĂNG</div>
 		<ul class="d-flex  flex-wrap ks-cboxtags">
 			<form:checkboxes element="li"

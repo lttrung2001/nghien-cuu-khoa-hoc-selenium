@@ -2,16 +2,13 @@ package selenium.page;
 
 import java.util.ArrayList;
 
-
 import java.util.Arrays;
 import java.util.List;
-
 import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-
 import selenium.model.FilterList;
 import selenium.model.PhoneConfiguration;
 import selenium.model.Result;
@@ -21,31 +18,31 @@ public class FPT extends TGDD {
 	private static final int brandPosition = 0;
 	private static final int pricePosition = 1;
 	private static final int featurePosition = 2;
-	private static final int displayPosition = 4;
+	private static String productLocator;
 	private PhoneConfiguration phone;
 	private List<WebElement> filters;
 	private List<WebElement> brandElements;
 	@SuppressWarnings("unused")
 	private List<WebElement> priceElements;
 	private List<WebElement> featureElements;
-	private List<WebElement> displayElements;
 	private List<Result> results = new ArrayList<Result>();
 
 	public FPT(ChromeDriver driver, PhoneConfiguration phone) {
 		super(driver);
 		super.url = "https://fptshop.com.vn/dien-thoai";
 		super.baseUrl = "https://fptshop.com.vn/";
+		super.defaultSearchNumber = 8;
+		super.defaultNumber = 27;
 		this.phone = phone;
 	}
 
 	@Override
 	public void getFilterElements() {
-		filters = wait.until(
-				ExpectedConditions.numberOfElementsToBeMoreThan(By.cssSelector(".cdt-filter__block"), displayPosition));
+		By filterLocators = By.cssSelector(".cdt-filter__block");
+		filters = wait.until(ExpectedConditions.numberOfElementsToBeMoreThan(filterLocators, featurePosition));
 		brandElements = filters.get(brandPosition).findElements(By.cssSelector(selector));
 		priceElements = filters.get(pricePosition).findElements(By.cssSelector(selector));
 		featureElements = filters.get(featurePosition).findElements(By.cssSelector(selector));
-		displayElements = filters.get(displayPosition).findElements(By.cssSelector(selector));
 	}
 
 	@Override
@@ -57,13 +54,6 @@ public class FPT extends TGDD {
 					featureElements.get(2));
 			js.executeScript(String.format("arguments[0].title = '%s';", ft.getSpecialFeatures()[2]),
 					featureElements.get(3));
-			// Display
-			js.executeScript(String.format("arguments[0].title = '%s';", ft.getDisplaySize()[0]),
-					displayElements.get(1));
-			js.executeScript(String.format("arguments[0].title = '%s';", ft.getDisplaySize()[0]),
-					displayElements.get(2));
-			js.executeScript(String.format("arguments[0].title = '%s';", ft.getDisplaySize()[1]),
-					displayElements.get(3));
 		} catch (IndexOutOfBoundsException e) {
 			throw new IndexOutOfBoundsException("Bộ lọc trên trang " + url + " đã thay đổi");
 		}
@@ -113,11 +103,11 @@ public class FPT extends TGDD {
 		if (phone.getSpecialFeature() != null)
 			filterOther(phone.getSpecialFeature(), featurePosition);
 
-		if (phone.getDisplaySize() != null)
-			filterOther(phone.getDisplaySize(), displayPosition);
-
 		try {
-			driver.get(driver.getCurrentUrl().concat("&trang=" + Integer.MAX_VALUE));
+			String total = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".cdt-head>span")))
+					.getText();
+			totalProduct = Integer.parseInt(total.split(" ")[0].replace("(", ""));
+			driver.get(driver.getCurrentUrl().concat("&trang=" + (int) Math.ceil(1.0 * totalProduct / defaultNumber)));
 		} catch (TimeoutException e) {
 			throw new TimeoutException("Trang web phản hồi quá lâu");
 		}
@@ -144,7 +134,7 @@ public class FPT extends TGDD {
 		try {
 			img = element.findElement(By.tagName("img")).getAttribute("src");
 		} catch (Exception e) {
-			
+
 		}
 		String name = element.findElement(By.cssSelector(".cdt-product__name")).getText();
 		String price = "";
@@ -204,19 +194,14 @@ public class FPT extends TGDD {
 	public List<Result> getResults(boolean isSearch) {
 		if (isSearch) {
 			totalProduct = Integer.parseInt(driver.findElements(By.cssSelector(".re-card h1 > span")).get(0).getText());
+			totalProduct = totalProduct > defaultSearchNumber ? defaultSearchNumber : totalProduct;
+			productLocator = ".row-flex > div.cdt-product";
 		} else {
-			String total = "";
-			try {
-				total = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".cdt-head>span")))
-						.getText();
-				totalProduct = Integer.parseInt(total.split(" ")[0].replace("(", ""));
-			} catch (TimeoutException e) {
-				throw new TimeoutException("Trang web phản hồi quá lâu");
-			}
+			productLocator = ".cdt-product-wrapper > div.cdt-product";
 		}
 		if (totalProduct > 0) {
-			List<WebElement> resultElements = wait
-					.until(ExpectedConditions.numberOfElementsToBe(By.cssSelector(".cdt-product"), totalProduct));
+			List<WebElement> resultElements = wait.until(ExpectedConditions
+					.numberOfElementsToBe(By.cssSelector(productLocator), totalProduct));
 			List<WebElement> optionElements;
 			for (int i = 0; i < resultElements.size(); i++) {
 				optionElements = resultElements.get(i).findElements(By.cssSelector(".mmr-box.item1"));
@@ -235,31 +220,24 @@ public class FPT extends TGDD {
 
 	@Override
 	public void refreshItemAfterClickAndGetData(List<WebElement> resultElements, int i) {
-		while (true) {
-			try {
-				resultElements = wait
-						.until(ExpectedConditions.numberOfElementsToBe(By.cssSelector(".cdt-product"), totalProduct));
-				collectProduct(resultElements.get(i));
-				break;
-			} catch (Exception e) {
-				System.out.println("refreshItemAfterClickAndGetData");
-			}
-		}
+		resultElements = wait.until(ExpectedConditions
+				.numberOfElementsToBe(By.cssSelector(productLocator), totalProduct));
+		collectProduct(resultElements.get(i));
 	}
 
 	@Override
 	public void tryToClickOption(List<WebElement> resultElements, List<WebElement> optionElements, int i, int j) {
-		while (true) {
-			try {
-				resultElements = wait
-						.until(ExpectedConditions.numberOfElementsToBe(By.cssSelector(".cdt-product"), totalProduct));
-				optionElements = resultElements.get(i).findElements(By.cssSelector(".mmr-box.item1"));
-				optionElements.get(j).click();
-				break;
-			} catch (Exception e) {
-				System.out.println("tryToClickOption");
-			}
-		}
+		if (j == 0)
+			return;
+		WebElement tmp = resultElements.get(i);
+		resultElements = wait.until(ExpectedConditions
+				.numberOfElementsToBe(By.cssSelector(productLocator), totalProduct));
+		optionElements = resultElements.get(i).findElements(By.cssSelector(".mmr-box.item1"));
+		optionElements.get(j).click();
+
+		resultElements = wait.until(ExpectedConditions
+				.numberOfElementsToBe(By.cssSelector(productLocator), totalProduct));
+		// Bug
 	}
 
 	@Override

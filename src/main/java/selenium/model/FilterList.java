@@ -42,7 +42,7 @@ public class FilterList {
 		this.setSpecialFeatures(new String[] { "Bảo mật khuôn mặt", "Hỗ trợ 5G", "Kháng nước & bụi" });
 		
 		this.setRam(new String[] { "1 GB", "2 GB", "3 GB", "4 GB", "6 GB", "8 GB", "12 GB" });
-		this.setRom(new String[] { "8 GB", "16 GB", "32 GB", "64 GB", "128 GB", "256 GB", "512 GB" });
+		this.setRom(new String[] { "8 GB", "16 GB", "32 GB", "64 GB", "128 GB", "256 GB", "512 GB", "1 TB" });
 	}
 
 	public void setBrands(String[] brands) {

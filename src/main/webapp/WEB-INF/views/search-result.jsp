@@ -16,6 +16,7 @@ span, h1 {
 </style>
 <link rel="stylesheet"
 	href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+<link rel="stylesheet" href="/css/fancy-card.css">
 </head>
 <body>
 	<c:if test="${not empty message }">
@@ -35,12 +36,12 @@ span, h1 {
 		cấu hình</a>
 	<div style="display: flex; flex-wrap: wrap; justify-content: center;">
 		<c:forEach var="item" items="${resultList }">
-			<div class="card"
+			<div class="card fancy_card"
 				style="width: 18rem; display: inline-block;">
 				<img class="card-img-top" src="${item.imageLink }"
 					alt="Card image cap">
 				<div class="card-body">
-					<h5 class="card-title">${item.name }</h5>
+					<b class="card-title">${item.name }</b>
 					<p style="font-weight: 500;" class="card-text">Giá:
 						${item.price }</p>
 					<c:forEach var="p" items="${item.details }">

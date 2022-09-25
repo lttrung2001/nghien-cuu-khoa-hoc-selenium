@@ -38,9 +38,10 @@ import selenium.model.PhoneConfiguration;
 import selenium.model.Result;
 
 public class TGDD {
-	public String url = "https://www.thegioididong.com/dtdd";
 	public String baseUrl = "https://www.thegioididong.com/";
-	public static int defaultNumber = 20;
+	public String url = baseUrl+"dtdd";
+	public int defaultNumber = 20;
+	public int defaultSearchNumber = 15;
 	public ChromeDriver driver;
 	public JavascriptExecutor js;
 	public WebDriverWait wait;
@@ -54,7 +55,6 @@ public class TGDD {
 	private List<WebElement> ramList;
 	private List<WebElement> romList;
 	private List<WebElement> featureList;
-	private List<WebElement> displaySizeList;
 	private List<Result> results = new ArrayList<Result>();
 
 	public TGDD(ChromeDriver driver) {
@@ -87,7 +87,6 @@ public class TGDD {
 		try {
 			connect(baseUrl+"tim-kiem?key="+key);
 			showSearchList();
-			// Warning: Handle getSearchProducts twice
 			if (getSearchProducts().size() == 0) {
 				return "";
 			}
@@ -101,7 +100,7 @@ public class TGDD {
 	
 	public void showSearchList() {
 		try {
-			WebElement menu = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".searchCategoryResult")));
+			WebElement menu = driver.findElements(By.cssSelector(".searchCategoryResult")).get(0);
 			List<WebElement> list = menu.findElements(By.tagName("a"));
 			for (WebElement webElement : list) {
 				if (webElement.getText().contains("Điện thoại")) {
@@ -117,14 +116,20 @@ public class TGDD {
 			throw new ElementClickInterceptedException("Không thể tương tác với phần tử trên trang");
 		} catch (TimeoutException e) {
 			throw new TimeoutException("Trang web phản hồi quá lâu showSearchList");
+		} catch (IndexOutOfBoundsException e) {
+			WebElement sortTotalElement = driver.findElement(By.cssSelector(".sort-total > b"));
+			totalProduct = Integer.parseInt(sortTotalElement.getText());
+			System.out.println("totalProduct in catch: "+totalProduct);
 		}
 	}
 	
 	public List<WebElement> getSearchProducts() {
 		List<WebElement> resultElements = null;
 		try {
+			totalProduct = totalProduct > defaultSearchNumber ? defaultSearchNumber : totalProduct;
 			resultElements = wait
-					.until(ExpectedConditions.numberOfElementsToBe(By.cssSelector(".item.cat42"), totalProduct));
+					.until(ExpectedConditions.numberOfElementsToBe(By.cssSelector("ul.listproduct > li.item"), totalProduct));
+			System.out.println("searchResultNumber: "+resultElements.size());
 			return resultElements;
 		} catch (TimeoutException e) {
 			throw new TimeoutException("Trang web phản hồi quá lâu getSearchProducts");
@@ -140,9 +145,8 @@ public class TGDD {
 		brandList = filterTable.findElements(By.cssSelector(".manu>.c-btnbox"));
 		priceList = filterTable.findElements(By.cssSelector(".price>.c-btnbox"));
 		ramList = filterTable.findElements(By.cssSelector(".filter-list--ram>.c-btnbox"));
-		romList = filterTable.findElements(By.cssSelector(".filter-list--bo-nho-trong>.c-btnbox"));
+		romList = filterTable.findElements(By.cssSelector(".filter-list--dung-luong-luu-tru >.c-btnbox"));
 		featureList = filterTable.findElements(By.cssSelector(".filter-list--tinh-nang-dac-biet>.c-btnbox"));
-		displaySizeList = filterTable.findElements(By.cssSelector(".filter-list--man-hinh>.c-btnbox"));
 	}
 
 	public void config() {
@@ -251,8 +255,6 @@ public class TGDD {
 		filterOther(phone.getRam(), ramList);
 		filterOther(phone.getRom(), romList);
 		scrollElement(filterTable, list.get(4));
-		
-		filterOther(phone.getDisplaySize(), displaySizeList);
 		
 		filterOther(phone.getSpecialFeature(), featureList);
 	}
