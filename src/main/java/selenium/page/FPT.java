@@ -1,14 +1,21 @@
 package selenium.page;
 
+import java.time.Duration;
 import java.util.ArrayList;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
+
 import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.FluentWait;
+
 import selenium.model.FilterList;
 import selenium.model.PhoneConfiguration;
 import selenium.model.Result;
@@ -60,32 +67,35 @@ public class FPT extends TGDD {
 	}
 
 	@Override
-	public void filterBrand(String[] strings) {
+	public void filterBrand(String[] strings) throws TimeoutException {
 		WebElement e = null;
+		String tmp;
 		for (int i = 0; i < brandElements.size(); i++) {
 			e = brandElements.get(i);
 			for (String string : strings) {
 				if (e.getAttribute("title").toLowerCase().contains(string)) {
-					driver.get(e.getAttribute("href"));
-					getFilterElements();
-					config();
+					wait.until(ExpectedConditions.elementToBeClickable(e));
+					tmp = e.getAttribute("href");
+					e.click();
+					wait.until(ExpectedConditions.not(ExpectedConditions.attributeToBe(e, "href", tmp)));
 					break;
 				}
 			}
 		}
 	}
 
-	public void filterOther(String[] strings, int index) {
+	public void filterOther(String[] strings, int index) throws TimeoutException {
 		WebElement e = null;
+		String tmp;
 		List<WebElement> elements = filters.get(index).findElements(By.cssSelector(selector));
 		for (int i = 0; i < elements.size(); i++) {
 			e = elements.get(i);
 			for (String string : strings) {
 				if (e.getAttribute("title").equals(string)) {
-					driver.get(e.getAttribute("href"));
-					getFilterElements();
-					config();
-					elements = filters.get(index).findElements(By.cssSelector(selector));
+					wait.until(ExpectedConditions.elementToBeClickable(e));
+					tmp = e.getAttribute("href");
+					e.click();
+					wait.until(ExpectedConditions.not(ExpectedConditions.attributeToBe(e, "href", tmp)));
 					break;
 				}
 			}
@@ -124,6 +134,7 @@ public class FPT extends TGDD {
 			driver.quit();
 			return "";
 		} catch (Exception e) {
+			driver.quit();
 			return e.getMessage();
 		}
 	}
@@ -201,8 +212,8 @@ public class FPT extends TGDD {
 			productLocator = ".cdt-product-wrapper > div.cdt-product";
 		}
 		if (totalProduct > 0) {
-			List<WebElement> resultElements = wait.until(ExpectedConditions
-					.numberOfElementsToBe(By.cssSelector(productLocator), totalProduct));
+			List<WebElement> resultElements = wait
+					.until(ExpectedConditions.numberOfElementsToBe(By.cssSelector(productLocator), totalProduct));
 			List<WebElement> optionElements;
 			for (int i = 0; i < resultElements.size(); i++) {
 				optionElements = resultElements.get(i).findElements(By.cssSelector(".mmr-box.item1"));
@@ -221,25 +232,41 @@ public class FPT extends TGDD {
 
 	@Override
 	public void refreshItemAfterClickAndGetData(List<WebElement> resultElements, int i) {
-		resultElements = wait.until(ExpectedConditions
-				.numberOfElementsToBe(By.cssSelector(productLocator), totalProduct));
-		collectProduct(resultElements.get(i));
+		while (true) {
+			try {
+				resultElements = wait
+						.until(ExpectedConditions.numberOfElementsToBe(By.cssSelector(productLocator), totalProduct));
+				collectProduct(resultElements.get(i));
+				break;
+			} catch (Exception e) {
+				// TODO: handle exception
+			}
+		}
 	}
 
 	@Override
 	public void tryToClickOption(List<WebElement> resultElements, List<WebElement> optionElements, int i, int j) {
-		if (j == 0)
-			return;
-		WebElement tmp = resultElements.get(i);
-		resultElements = wait.until(ExpectedConditions
-				.numberOfElementsToBe(By.cssSelector(productLocator), totalProduct));
-		optionElements = resultElements.get(i).findElements(By.cssSelector(".mmr-box.item1"));
-		optionElements.get(j).click();
+		if (j > 0) {
+			By optionLocator = By.cssSelector(".mmr-box.item1");
+			WebElement tmp = resultElements.get(i);
+			resultElements = wait
+					.until(ExpectedConditions.numberOfElementsToBe(By.cssSelector(productLocator), totalProduct));
+			optionElements = resultElements.get(i).findElements(optionLocator);
+			optionElements.get(j).click();
 
-		resultElements = wait.until(ExpectedConditions
-				.numberOfElementsToBe(By.cssSelector(productLocator), totalProduct));
-		// Bug
-		wait.until(driver -> !driver.findElements(By.cssSelector(productLocator)).get(i).equals(tmp));
+			resultElements = wait
+					.until(ExpectedConditions.numberOfElementsToBe(By.cssSelector(productLocator), totalProduct));
+			// Bug
+			while (!driver.findElements(By.cssSelector(productLocator)).get(i).equals(tmp)) {
+				try {
+					wait.wait(500);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+//			wait.until(driver -> !driver.findElements(By.cssSelector(productLocator)).get(i).equals(tmp));
+		}
 	}
 
 	@Override
@@ -250,6 +277,7 @@ public class FPT extends TGDD {
 			driver.quit();
 			return "";
 		} catch (Exception e) {
+			driver.quit();
 			return e.getMessage();
 		}
 	}

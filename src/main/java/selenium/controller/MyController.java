@@ -151,7 +151,7 @@ public class MyController {
 			try {
 				String searchDMX = new DMX(initChromeDriver()).search(key, results2);
 				if (!searchDMX.isEmpty()) {
-					model.addAttribute("tgdd_message", searchDMX);
+					model.addAttribute("dmx_message", searchDMX);
 				}
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
@@ -162,7 +162,7 @@ public class MyController {
 			try {
 				String searchFPT = new FPT(initChromeDriver(), phone).search(key, results3);
 				if (!searchFPT.isEmpty()) {
-					model.addAttribute("tgdd_message", searchFPT);
+					model.addAttribute("fpt_message", searchFPT);
 				}
 			} catch (IOException e) {
 				// TODO Auto-generated catch block

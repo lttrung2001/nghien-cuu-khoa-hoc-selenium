@@ -72,7 +72,10 @@ public class TGDD {
 			filterAll(phone);
 			{
 				getTotalNumber();
-				if (totalProduct == 0) return "";
+				if (totalProduct == 0) {
+					driver.quit();
+					return "";
+				}
 			}
 			loadAllProduct();
 			allResults.addAll(getResults(false));
@@ -80,6 +83,7 @@ public class TGDD {
 			return "";
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
+			driver.quit();
 			return e.getMessage();
 		}
 	}
@@ -89,6 +93,7 @@ public class TGDD {
 			connect(baseUrl+"tim-kiem?key="+key);
 			showSearchList();
 			if (getSearchProducts().size() == 0) {
+				driver.quit();
 				return "";
 			}
 			allResults.addAll(getResults(true));
@@ -96,6 +101,7 @@ public class TGDD {
 			return "";
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
+			driver.quit();
 			return e.getMessage();
 		}
 	}
@@ -358,7 +364,7 @@ public class TGDD {
 		for (int i = 0; i < resultElements.size(); i++) {
 			optionElements = resultElements.get(i).findElements(By.cssSelector(".merge__item.item"));
 			// Select each option of product
-			if (optionElements.size() != 0) {
+			if (optionElements.size() > 0) {
 				// Get option and click
 				for (int j = 0; j < optionElements.size(); j++) {
 					// Try to click option
@@ -366,8 +372,9 @@ public class TGDD {
 					// Refresh item after click and get data
 					refreshItemAfterClickAndGetData(resultElements, i);
 				}
-			} else
+			} else {
 				collectProduct(resultElements.get(i));
+			}
 		}
 		return results;
 	}
