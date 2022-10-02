@@ -6,6 +6,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jetbrains.annotations.NotNull;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -26,7 +27,6 @@ import selenium.page.TGDD;
 public class MyController {
 
 	private FilterList filterList = new FilterList();
-	List<Result> results;
 
 	private ChromeDriver initChromeDriver() throws IOException {
 //		String webDriverPath = "C:\\Users\\THANHTRUNG\\OneDrive - student.ptithcm.edu.vn\\Desktop\\eclipse_workspace\\NCKH_BOOT\\src\\main\\resources\\chromedriver.exe";
@@ -36,7 +36,7 @@ public class MyController {
 //		options.addArguments("--disable-gpu");
 //		options.addArguments("--no-sandbox");
 		ChromeDriver driver = (ChromeDriver) WebDriverManager.chromedriver().create();
-		// Xoa tat ca cookie
+		// Xóa tất cả cookie, maximize và set Timeout.
 		driver.manage().deleteAllCookies();
 		driver.manage().window().maximize();
 		driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(30));
@@ -51,7 +51,8 @@ public class MyController {
 	}
 
 	@RequestMapping(value = "result" , method = RequestMethod.POST)
-	public String postHome(ModelMap model, @ModelAttribute("phoneConfiguration") PhoneConfiguration phone) throws IOException, InterruptedException {
+	public String postHome(ModelMap model, @ModelAttribute("phoneConfiguration") @NotNull PhoneConfiguration phone)
+			throws InterruptedException {
 		if (phone.getBrand().length == 0
 				&& phone.getPriceRange().length == 0
 				&& phone.getRam().length == 0
@@ -62,10 +63,10 @@ public class MyController {
 			return "index";
 		}
 		
-		results = new ArrayList<Result>();
-		List<Result> results1 = new ArrayList<Result>();
-		List<Result> results2 = new ArrayList<Result>();
-		List<Result> results3 = new ArrayList<Result>();
+		List<Result> results = new ArrayList<>();
+		List<Result> results1 = new ArrayList<>();
+		List<Result> results2 = new ArrayList<>();
+		List<Result> results3 = new ArrayList<>();
 		
 		Thread t1 = new Thread(() -> {
 			try {
@@ -74,7 +75,6 @@ public class MyController {
 					model.addAttribute("tgdd_message", resultTGDD);
 				}
 			} catch (IOException e) {
-				// TODO: handle exception
 				e.printStackTrace();
 			}
 		});
@@ -85,18 +85,16 @@ public class MyController {
 					model.addAttribute("dmx_message", resultDMX);
 				}
 			} catch (Exception e) {
-				// TODO: handle exception
 				e.printStackTrace();
 			}
 		});
 		Thread t3 = new Thread(() -> {
 			try {
-				String resultFPT = new FPT(initChromeDriver(), phone).run(phone, results);
+				String resultFPT = new FPT(initChromeDriver()).run(phone, results);
 				if (!resultFPT.isEmpty()) {
 					model.addAttribute("fpt_message", resultFPT);
 				}
 			} catch (Exception e) {
-				// TODO: handle exception
 				e.printStackTrace();
 			}
 		});
@@ -124,48 +122,48 @@ public class MyController {
 	}
 	
 	@RequestMapping(value = "search", method = RequestMethod.POST, params = "btnSearch")
-	public String postSearch(ModelMap model, @RequestParam("key") String key, @ModelAttribute("phoneConfiguration") PhoneConfiguration phone) throws IOException, InterruptedException {
+	public String postSearch(ModelMap model,
+							 @RequestParam("key") String key,
+							 @ModelAttribute("phoneConfiguration") PhoneConfiguration phone
+	) throws InterruptedException {
 		if (key.isBlank()) {
 			model.addAttribute("message", "Nhập thông tin để tìm kiếm");
 			model.addAttribute("ft", filterList);
 			return "index";
 		}
 		
-		results = new ArrayList<Result>();
-		List<Result> results1 = new ArrayList<Result>();
-		List<Result> results2 = new ArrayList<Result>();
-		List<Result> results3 = new ArrayList<Result>();
+		List<Result> results = new ArrayList<>();
+		List<Result> results1 = new ArrayList<>();
+		List<Result> results2 = new ArrayList<>();
+		List<Result> results3 = new ArrayList<>();
 		
 		Thread t1 = new Thread(() -> {
 			try {
-				String searchTGDD = new TGDD(initChromeDriver()).search(key, results1);
+				String searchTGDD = new TGDD(initChromeDriver()).search(phone, key, results1);
 				if (!searchTGDD.isEmpty()) {
 					model.addAttribute("tgdd_message", searchTGDD);
 				}
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		});
 		Thread t2 = new Thread(() -> {
 			try {
-				String searchDMX = new DMX(initChromeDriver()).search(key, results2);
+				String searchDMX = new DMX(initChromeDriver()).search(phone, key, results2);
 				if (!searchDMX.isEmpty()) {
 					model.addAttribute("dmx_message", searchDMX);
 				}
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		});
 		Thread t3 = new Thread(() -> {
 			try {
-				String searchFPT = new FPT(initChromeDriver(), phone).search(key, results3);
+				String searchFPT = new FPT(initChromeDriver()).search(phone, key, results3);
 				if (!searchFPT.isEmpty()) {
 					model.addAttribute("fpt_message", searchFPT);
 				}
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		});
