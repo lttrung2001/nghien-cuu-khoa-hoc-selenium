@@ -1,7 +1,10 @@
 package selenium.page;
 
+import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -10,8 +13,11 @@ import selenium.model.FilterList;
 import selenium.model.PhoneConfiguration;
 import selenium.model.Result;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 public class FPT extends TGDD {
@@ -151,14 +157,24 @@ public class FPT extends TGDD {
 
     /* Hàm này dùng để đọc kết quả 1 phần tử chứa thông tin cấu hình điện thoại. */
     @Override
-    public void collectProduct(WebElement element, PhoneConfiguration phone) {
+    public void collectProduct(WebElement element, PhoneConfiguration phone) throws IOException {
         // Cuộn màn hình tới element.
         js.executeScript("arguments[0].scrollIntoView(true);", element);
         By imgLocator = By.tagName("img");
         By productNameLocator = By.cssSelector(".cdt-product__name");
         By configLocator = By.cssSelector(".cdt-product__config__param");
         // Lấy url ảnh
-        String img = element.findElement(imgLocator).getAttribute("src");
+        String img = "";
+        try {
+            img = element.findElement(imgLocator).getAttribute("src");            
+        } catch (Exception e) {
+            TakesScreenshot ss = (TakesScreenshot) element;
+            File srcFile = ss.getScreenshotAs(OutputType.FILE);
+            String basePath = "C:\\Users\\THANHTRUNG\\OneDrive - student.ptithcm.edu.vn\\Desktop\\eclipse_workspace\\NCKH_BOOT\\src\\main\\resources\\images\\";
+            File destFile = new File(basePath+new Date().getTime()+".jpg");
+            FileUtils.copyFile(srcFile, destFile);
+            img = "/../resources/images/"+destFile.getName();
+        }
         String name = element.findElement(By.cssSelector(".cdt-product__name")).getText();
         // Lấy giá tiền điện thoại
         String price = ""; // Biến lưu trữ giá tiền
@@ -214,7 +230,7 @@ public class FPT extends TGDD {
     }
 
     @Override
-    public List<Result> getResults(boolean isSearch, PhoneConfiguration phone) throws TimeoutException {
+    public List<Result> getResults(boolean isSearch, PhoneConfiguration phone) throws TimeoutException, IOException {
         if (isSearch) {
             By totalLocator = By.cssSelector(".re-card h1 > span");
             try {
@@ -253,7 +269,7 @@ public class FPT extends TGDD {
                                      List<WebElement> optionElements,
                                      int i, int j,
                                      PhoneConfiguration phone)
-            throws TimeoutException {
+            throws TimeoutException, IOException {
         if (j > 0) {
             while (true) {
                 try {
@@ -262,11 +278,18 @@ public class FPT extends TGDD {
                             .until(ExpectedConditions.numberOfElementsToBe(productLocator, totalProduct)));
                     optionElements.clear();
                     optionElements.addAll(resultElements.get(i).findElements(optionLocator));
+                    
                     optionElements.get(j).click();
+                    
+                    resultElements.clear();
+                    resultElements.addAll(wait
+                            .until(ExpectedConditions.numberOfElementsToBe(productLocator, totalProduct)));
+                    optionElements.clear();
+                    optionElements.addAll(resultElements.get(i).findElements(optionLocator));
                     collectProduct(resultElements.get(i), phone);
                     break;
                 } catch (Exception e) {
-
+                       
                 }
             }
         } else {
